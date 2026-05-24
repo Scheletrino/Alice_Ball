@@ -1,0 +1,301 @@
+/* ------------------------------
+   FONT & BASE STYLE
+------------------------------ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;600&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background: #f7f2e8 url("img/ui/paper_texture.png");
+    background-size: cover;
+    color: #1a2a44;
+    overflow-x: hidden;
+}
+
+/* ------------------------------
+   TITOLI
+------------------------------ */
+
+h1, h2, h3 {
+    font-family: 'Playfair Display', serif;
+    color: #1a2a44;
+    text-align: center;
+}
+
+h1 {
+    font-size: 42px;
+    margin: 20px 0 5px 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 16px;
+    opacity: 0.8;
+    margin-bottom: 20px;
+}
+
+/* ------------------------------
+   HOME SCREEN (VIDEOGAME STYLE)
+------------------------------ */
+
+/* HOME SCREEN */
+#main-menu.home-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 100vh;
+    overflow: hidden;
+    padding: 0 40px;
+    background: linear-gradient(135deg, #f3e9d2, #e8d7b9);
+}
+
+/* Contenuto sinistro (header + menu) */
+.home-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 40px;
+}
+
+/* Header dentro la home */
+.home-header h1 {
+    margin: 0;
+}
+
+.home-header .subtitle {
+    margin: 0;
+}
+
+/* Menu sinistro */
+.main-menu-left {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Scritte cliccabili */
+.menu-link {
+    font-size: 36px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #3a2c1e;
+    transition: 0.25s;
+    user-select: none;
+}
+
+.menu-link:hover {
+    transform: translateX(12px);
+    color: #6b4a2b;
+}
+
+/* Colonna destra */
+.main-menu-right img {
+    max-height: 80vh;
+    width: auto;
+    object-fit: contain;
+    animation: float 3s ease-in-out infinite;
+}
+
+/* ------------------------------
+   SEZIONI INTERNE
+------------------------------ */
+
+section {
+    background: rgba(255,255,255,0.7);
+    border: 2px solid #c9a86a;
+    border-radius: 14px;
+    padding: 20px;
+    max-width: 900px;
+    margin: 20px auto;
+    backdrop-filter: blur(3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.hidden {
+    display: none;
+}
+
+/* ------------------------------
+   BOTTONI INTERNI
+------------------------------ */
+
+button, .back-btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 2px solid #1a2a44;
+    background: #fffaf0;
+    color: #1a2a44;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+    font-size: 15px;
+}
+
+button:hover, .back-btn:hover {
+    background: #1a2a44;
+    color: white;
+}
+
+/* ------------------------------
+   MEMORY CARDS
+------------------------------ */
+
+#game {
+    width: 650px;
+    max-width: 100%;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    perspective: 1200px;
+}
+
+.card {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    position: relative;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease;
+}
+
+.card.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-back, .card-front {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    border: 3px solid #c9a86a;
+    backface-visibility: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+}
+
+.card-back {
+    background-image: url("img1/Sfondo.png");
+    background-size: cover;
+}
+
+.card-front {
+    background: #fffaf0;
+    transform: rotateY(180deg);
+    overflow: hidden;
+}
+
+.card-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ------------------------------
+   POPUP
+------------------------------ */
+
+#popup, #level-complete-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 380px;
+    max-width: 90%;
+    background: #fffaf0;
+    padding: 25px;
+    border-radius: 14px;
+    border: 3px solid #c9a86a;
+    box-shadow: 0 0 25px rgba(0,0,0,0.35);
+    display: none;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+    z-index: 2000;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -48%); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* ------------------------------
+   ROTATE WARNING
+------------------------------ */
+
+#rotate-warning {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.rotate-box {
+  background: #222;
+  padding: 20px 30px;
+  border-radius: 12px;
+  text-align: center;
+  color: white;
+  font-size: 1.2rem;
+  border: 2px solid #aa0000;
+}
+
+#close-rotate {
+  margin-top: 15px;
+  padding: 8px 18px;
+  background: #aa0000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+#game-subtitle {
+    text-align: center;
+    width: 100%;
+    display: block;
+}
+
+.home-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* centra verticalmente */
+    height: 100%;            /* NECESSARIO per il centraggio */
+    gap: 40px;
+}
+.main-menu-left {
+    margin-top: -80px;
+}
+
+.back-btn {
+    margin-top: 10px; /* aumenta lo spazio sopra */
+}
+
+/* ARCHIVIO – stile tipo “embed Discord” */
+.archive-category {
+    margin-bottom: 35px;
+}
+
+.archive-category h3 {
+    font-family: 'Playfair Display', serif;
+    color: #1a2a44;
+    margin-bottom: 12px;
+    font-size: 22px;
+}
+
+/* Ogni voce separata e più evidente */
+.archive-item {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #e8eef7; /* più chiaro e leggibile */
+    margin-bottom: 12px; /* più spazio tra le voci */
+    font-size: 15px;
+    border-left: 5px solid #c9a86a; /* stile elegante */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12); /* effetto “card” */
+    line-height: 1.4;
+}

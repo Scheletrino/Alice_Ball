@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Memory – Alice Ball</title>
+    <link rel="stylesheet" href="Biologia.css">
+</head>
+<body>
+
+<div id="rotate-warning">
+  <div class="rotate-box">
+    <p>Ruota il telefono per giocare meglio</p>
+    <button id="close-rotate">OK</button>
+  </div>
+</div>
+
+<header>
+    <h1>Memory – Alice Ball Edition</h1>
+    <p class="subtitle">Scopri la vita, le scoperte e i riconoscimenti di Alice Ball giocando.</p>
+</header>
+
+<!-- HOME SCREEN -->
+<div id="main-menu" class="home-layout">
+
+    <div class="home-content">
+
+        <header class="home-header">
+          
+        </header>
+
+        <div class="main-menu-left">
+            <div class="menu-link" data-action="play-default">Gioca</div>
+            <div class="menu-link" data-action="choose-level">Scegli livello</div>
+            <div class="menu-link" data-action="open-archive">Archivio scoperte</div>
+            <div class="menu-link" data-action="about">Chi era Alice Ball?</div>
+        </div>
+
+    </div>
+
+    <div class="main-menu-right">
+        <img src="img2/Beute.jpg" alt="Beuta decorativa">
+    </div>
+
+</div>
+
+
+<!-- LIVELLI -->
+<section id="level-select" class="hidden">
+    <h2>Scegli un livello</h2>
+    <div class="level-buttons">
+        <button data-level="bio">Biografia</button>
+        <button data-level="scoperte">Scoperte</button>
+        <button data-level="riconoscimenti">Riconoscimenti</button>
+        <button data-level="vita">Vita privata</button>
+    </div>
+    <button class="back-btn">← Torna al menu</button>
+</section>
+
+<!-- GIOCO -->
+<section id="game-section" class="hidden">
+    <h2 id="game-title"></h2>
+    <p id="game-subtitle"></p>
+    <div id="game"></div>
+    <button class="back-btn">← Torna al menu</button>
+</section>
+
+<!-- ARCHIVIO -->
+<section id="archive-section" class="hidden">
+    <h2>Archivio scoperte</h2>
+    <div id="archive-empty">Non hai ancora sbloccato nessuna scheda. Gioca per scoprirle!</div>
+    <div id="archive-list"></div>
+    <button class="back-btn">← Torna al menu</button>
+</section>
+
+<!-- ABOUT -->
+<section id="about-section" class="hidden">
+    <h2>Chi era Alice Ball?</h2>
+    <p>
+        Alice Ball (1892–1916) fu una chimica americana che sviluppò il primo trattamento efficace contro la lebbra,
+        noto come “Ball Method”. A soli 23 anni rivoluzionò la medicina, anche se il suo contributo fu riconosciuto
+        pienamente solo molti anni dopo.
+    </p>
+    <button class="back-btn">← Torna al menu</button>
+</section>
+
+<!-- POPUP -->
+<div id="popup">
+    <h3 id="popup-title"></h3>
+    <p id="popup-text"></p>
+    <button id="popup-close">Chiudi</button>
+</div>
+
+<!-- POPUP FINE LIVELLO -->
+<div id="level-complete-popup">
+    <h2 id="level-complete-title"></h2>
+    <button id="continue-btn">Continua →</button>
+</div>
+
+<script src="Biologia.js"></script>
+</body>
+</html>
