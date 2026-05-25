@@ -1,509 +1,529 @@
-// inizio file Biologia.js
-function isMobile() {
-  return /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
-}
+/* ===========================
+   STATO GENERALE DEL GIOCO
+   =========================== */
 
-function checkOrientation() {
-  const warning = document.getElementById("rotate-warning");
+let currentLevel = 1;
+const maxLevel = 4;
 
-  if (window.innerHeight > window.innerWidth) {
-    warning.style.display = "flex";
-  } else {
-    warning.style.display = "none";
-  }
-}
+let unlockedSummaries = [];
+let memoryState = {
+    cards: [],
+    revealed: [],
+    matchedPairs: 0,
+    totalPairs: 0,
+    lock: false,
+    timerId: null,
+    timeLeft: 0,
+    config: null
+};
 
+/* ===========================
+   CONFIGURAZIONE LIVELLI
+   =========================== */
 
-// --- DATI: fatti su Alice Ball, divisi per categoria ---
-const facts = [
-    // BIOGRAFIA
-    {
-        id: "bio1",
-        category: "Biografia",
-        title: "Origini e infanzia",
-        text: "Alice Ball nacque a Seattle nel 1892 in una famiglia della classe media, con forte attenzione all’istruzione."
+const levelConfigs = {
+    1: {
+        title: "Livello 1 – Le origini di Nettie",
+        description: "Scopri le origini di Nettie Maria Stevens: nascita, famiglia e primi studi.",
+        pairs: 4,
+        timer: false,
+        timeLimit: 0,
+        swapOnError: false
     },
-    {
-        id: "bio2",
-        category: "Biografia",
-        title: "Studi universitari",
-        text: "Studiò chimica all’Università delle Hawaii, dove divenne la prima donna e la prima persona afroamericana a laurearsi in chimica."
+    2: {
+        title: "Livello 2 – Studi e ricerca",
+        description: "Approfondisci gli studi universitari e l’inizio della carriera scientifica di Nettie.",
+        pairs: 6,
+        timer: true,
+        timeLimit: 40, // secondi
+        swapOnError: false
     },
-    {
-        id: "bio3",
-        category: "Biografia",
-        title: "Carriera accademica",
-        text: "Fu anche la prima donna docente di chimica all’Università delle Hawaii, a soli 23 anni."
+    3: {
+        title: "Livello 3 – La grande scoperta",
+        description: "Ricostruisci la scoperta dei cromosomi sessuali e le difficoltà incontrate.",
+        pairs: 6,
+        timer: false,
+        timeLimit: 0,
+        swapOnError: true
     },
-    {
-        id: "bio4",
-        category: "Biografia",
-        title: "Contesto storico",
-        text: "Lavorò in un’epoca in cui le donne e le persone nere avevano pochissime opportunità nel mondo scientifico."
-    },
-
-    // SCOPERTE
-    {
-        id: "scop1",
-        category: "Scoperte",
-        title: "Il Ball Method",
-        text: "Alice sviluppò il Ball Method, un metodo per rendere iniettabile l’olio di chaulmoogra, usato per curare la lebbra."
-    },
-    {
-        id: "scop2",
-        category: "Scoperte",
-        title: "Innovazione chimica",
-        text: "Isolò gli acidi grassi attivi e li rese solubili, permettendo al corpo di assorbirli in modo efficace."
-    },
-    {
-        id: "scop3",
-        category: "Scoperte",
-        title: "Impatto medico",
-        text: "Il suo metodo divenne il trattamento standard per la lebbra fino agli anni ’40."
-    },
-    {
-        id: "scop4",
-        category: "Scoperte",
-        title: "Ricerca in laboratorio",
-        text: "Lavorò intensamente in laboratorio, sperimentando diverse formulazioni dell’olio di chaulmoogra."
-    },
-
-    // RICONOSCIMENTI
-    {
-        id: "ric1",
-        category: "Riconoscimenti",
-        title: "Riconoscimento tardivo",
-        text: "Per anni il suo lavoro fu attribuito ad altri, e solo decenni dopo le fu riconosciuto il merito."
-    },
-    {
-        id: "ric2",
-        category: "Riconoscimenti",
-        title: "Onori accademici",
-        text: "L’Università delle Hawaii ha intitolato a lei una targa e una giornata commemorativa."
-    },
-    {
-        id: "ric3",
-        category: "Riconoscimenti",
-        title: "Figura simbolo",
-        text: "Oggi è considerata un simbolo di eccellenza scientifica e di lotta contro le discriminazioni."
-    },
-    {
-        id: "ric4",
-        category: "Riconoscimenti",
-        title: "Memoria storica",
-        text: "La sua storia viene sempre più raccontata in libri, documentari e corsi di storia della scienza."
-    },
-
-    // VITA PRIVATA
-    {
-        id: "vita1",
-        category: "Vita privata",
-        title: "Famiglia",
-        text: "Proveniva da una famiglia che valorizzava l’istruzione e la curiosità scientifica."
-    },
-    {
-        id: "vita2",
-        category: "Vita privata",
-        title: "Trasferimento alle Hawaii",
-        text: "Si trasferì alle Hawaii per studiare e lavorare, lontano dalla sua città natale."
-    },
-    {
-        id: "vita3",
-        category: "Vita privata",
-        title: "Difficoltà personali",
-        text: "Affrontò ostacoli legati al sessismo e al razzismo, ma continuò a perseguire la ricerca."
-    },
-    {
-        id: "vita4",
-        category: "Vita privata",
-        title: "Morte prematura",
-        text: "Morì molto giovane, a 24 anni, prima di vedere pienamente riconosciuto il suo lavoro."
-    }
-];
-
-// --- LIVELLI: ogni carta ha un'immagine e un factId ---
-const levels = {
-    bio: {
-        title: "Livello Biografia",
-        subtitle: "Scopri la vita e il percorso di Alice Ball.",
-        cards: [
-            { img:"img1/1Immagine.png", factId: "bio1" },
-            { img:"img1/1Immagine.png", factId: "bio1" },
-            { img: "img1/2Immagine.png", factId: "bio2" },
-            { img: "img1/2Immagine.png", factId: "bio2" },
-            { img: "img1/3Immagine.png", factId: "bio3" },
-            { img: "img1/3Immagine.png", factId: "bio3" },
-            { img: "img1/4Immagine.png", factId: "bio4" },
-            { img: "img1/4Immagine.png", factId: "bio4" }
-        ]
-    },
-    scoperte: {
-        title: "Livello Scoperte",
-        subtitle: "Approfondisci le scoperte scientifiche di Alice Ball.",
-        cards: [
-            { img: "img1/1.1Immagine.png", factId: "scop1" },
-            { img: "img1/1.1Immagine.png", factId: "scop1" },
-            { img: "img1/1.2Immagine.png", factId: "scop2" },
-            { img: "img1/1.2Immagine.png", factId: "scop2" },
-            { img: "img1/1.3Immagine.png", factId: "scop3" },
-            { img: "img1/1.3Immagine.png", factId: "scop3" },
-            { img: "img1/1.4Immagine.png", factId: "scop4" },
-            { img: "img1/1.4Immagine.png", factId: "scop4" }
-        ]
-    },
-    riconoscimenti: {
-        title: "Livello Riconoscimenti",
-        subtitle: "Scopri come il suo lavoro è stato riconosciuto nel tempo.",
-        cards: [
-            { img: "img2/2.1Immagine.png", factId: "ric1" },
-            { img: "img2/2.1Immagine.png", factId: "ric1" },
-            { img: "img2/2.2Immagine.png", factId: "ric2" },
-            { img: "img2/2.2Immagine.png", factId: "ric2" },
-            { img: "img2/2.3Immagine.png", factId: "ric3" },
-            { img: "img2/2.3Immagine.png", factId: "ric3" },
-            { img: "img2/2.4Immagine.png", factId: "ric4" },
-            { img: "img2/2.4Immagine.png", factId: "ric4" }
-        ]
-    },
-    vita: {
-        title: "Livello Vita privata",
-        subtitle: "Conosci il lato umano e personale di Alice Ball.",
-        cards: [
-            { img: "img2/3.1Immagine.png", factId: "vita1" },
-            { img: "img2/3.1Immagine.png", factId: "vita1" },
-            { img: "img2/3.2Immagine.png", factId: "vita2" },
-            { img: "img2/3.2Immagine.png", factId: "vita2" },
-            { img: "img2/3.3Immagine.png", factId: "vita3" },
-            { img: "img2/3.3Immagine.png", factId: "vita3" },
-            { img: "img2/3.4Immagine.png", factId: "vita4" },
-            { img: "img2/3.4Immagine.png", factId: "vita4" }
-        ]
+    4: {
+        title: "Livello 4 – Eredità e riconoscimento",
+        description: "Ripercorri la vita privata, la morte e l’eredità scientifica di Nettie.",
+        pairs: 8,
+        timer: true,
+        timeLimit: 45, // secondi
+        swapOnError: true
     }
 };
 
-// --- STATO DI GIOCO ---
-let currentLevelKey = null;
-let flipped = [];
-let matchedPairs = 0;
-let totalPairs = 0;
-const unlockedFacts = new Set();
+/* ===========================
+   INFORMAZIONI (POPUP + ARCHIVIO)
+   Ordine fisso:
+   1) Nascita/Biografia
+   2) Studi/Carriera
+   3) Scoperte
+   4) Discriminazioni
+   5) Vita privata/Morte
+   =========================== */
 
-// --- RIFERIMENTI DOM ---
-const mainMenu = document.getElementById("main-menu");
-const levelSelect = document.getElementById("level-select");
-const gameSection = document.getElementById("game-section");
-const archiveSection = document.getElementById("archive-section");
-const aboutSection = document.getElementById("about-section");
-const gameContainer = document.getElementById("game");
-const gameTitle = document.getElementById("game-title");
-const gameSubtitle = document.getElementById("game-subtitle");
-const archiveList = document.getElementById("archive-list");
-const archiveEmpty = document.getElementById("archive-empty");
-const popup = document.getElementById("popup");
-const popupTitle = document.getElementById("popup-title");
-const popupText = document.getElementById("popup-text");
-const popupCloseBtn = document.getElementById("popup-close");
+const nettieInfo = {
+    birth: [
+        "Nettie Maria Stevens nacque il 7 luglio 1861 a Cavendish, Vermont (USA).",
+        "Proveniva da una famiglia modesta e perse la madre da piccola.",
+        "Fin da bambina era molto studiosa, riservata e determinata."
+    ],
+    studies: [
+        "Studiò al Mount Holyoke Female Seminary, dove eccelleva in molte materie.",
+        "Si laureò alla Stanford University, pagandosi gli studi lavorando.",
+        "Iniziò la carriera scientifica tardi, quasi a 40 anni."
+    ],
+    discoveries: [
+        "Studiò i cromosomi degli insetti al microscopio.",
+        "Nel 1905 scoprì che i maschi hanno cromosomi XY e le femmine XX.",
+        "Dimostrò che il sesso biologico è determinato dai cromosomi."
+    ],
+    discrimination: [
+        "Era donna in un ambiente scientifico dominato dagli uomini.",
+        "Guadagnava meno dei colleghi e le vennero negati ruoli stabili.",
+        "Per anni il merito della sua scoperta fu attribuito a Edmund Wilson."
+    ],
+    death: [
+        "Non si sposò e dedicò la vita alla ricerca.",
+        "Morì il 4 maggio 1912 a Baltimora, a 50 anni, per un tumore al seno.",
+        "Oggi è considerata una pioniera della genetica moderna."
+    ]
+};
 
-// --- NAVIGAZIONE ---
-function showSection(section) {
-    // Nascondi tutte le sezioni interne
-    levelSelect.classList.add("hidden");
-    gameSection.classList.add("hidden");
-    archiveSection.classList.add("hidden");
-    aboutSection.classList.add("hidden");
+/* ===========================
+   COPPIE DI CARTE (IMMAGINI)
+   (Sostituisci i path con le tue immagini reali)
+   Ogni coppia ha due immagini diverse ma stesso pairId
+   =========================== */
 
-    // Nascondi la home
-    mainMenu.classList.add("hidden");
-    mainMenu.classList.remove("home-layout");
+const allPairs = [
+    // Coppie legate a nascita/biografia
+    { pairId: "birth1", imgA: "img/birth_place_1.png", imgB: "img/birth_place_2.png" },
+    { pairId: "family", imgA: "img/family_1.png", imgB: "img/family_2.png" },
 
-    // Mostra la sezione richiesta
-    if (section) {
-        section.classList.remove("hidden");
-    }
+    // Coppie legate a studi/carreira
+    { pairId: "mount_holyoke", imgA: "img/mount_holyoke_1.png", imgB: "img/mount_holyoke_2.png" },
+    { pairId: "stanford", imgA: "img/stanford_1.png", imgB: "img/stanford_2.png" },
+
+    // Coppie legate a ricerca/scoperte
+    { pairId: "microscope", imgA: "img/microscope_1.png", imgB: "img/microscope_2.png" },
+    { pairId: "chromosomes", imgA: "img/chromosomes_1.png", imgB: "img/chromosomes_2.png" },
+    { pairId: "insects", imgA: "img/insects_1.png", imgB: "img/insects_2.png" },
+    { pairId: "lab_tools", imgA: "img/lab_tools_1.png", imgB: "img/lab_tools_2.png" },
+
+    // Coppie legate a discriminazioni
+    { pairId: "professor_male", imgA: "img/professor_male_1.png", imgB: "img/professor_male_2.png" },
+    { pairId: "researcher_female", imgA: "img/researcher_female_1.png", imgB: "img/researcher_female_2.png" },
+    { pairId: "documents", imgA: "img/documents_1.png", imgB: "img/documents_2.png" },
+    { pairId: "rejected", imgA: "img/rejected_1.png", imgB: "img/rejected_2.png" },
+
+    // Coppie legate a vita privata/morte/eredità
+    { pairId: "hospital", imgA: "img/hospital_1.png", imgB: "img/hospital_2.png" },
+    { pairId: "tombstone", imgA: "img/tombstone_1.png", imgB: "img/tombstone_2.png" },
+    { pairId: "medal", imgA: "img/medal_1.png", imgB: "img/medal_2.png" },
+    { pairId: "plaque", imgA: "img/plaque_1.png", imgB: "img/plaque_2.png" }
+    // Se vuoi, puoi aggiungerne altre
+];
+
+/* ===========================
+   GESTIONE SCHERMATE
+   =========================== */
+
+function showScreen(id) {
+    const screens = document.querySelectorAll(".screen");
+    const newScreen = document.getElementById(id);
+
+    screens.forEach(s => {
+        if (s.classList.contains("active")) {
+            s.classList.remove("active");
+            s.classList.add("exit-left");
+            setTimeout(() => {
+                s.classList.remove("exit-left");
+            }, 400);
+        }
+    });
+
+    setTimeout(() => {
+        newScreen.classList.add("active");
+    }, 10);
 }
 
 function backToMenu() {
-    // Nascondi tutte le sezioni interne
-    levelSelect.classList.add("hidden");
-    gameSection.classList.add("hidden");
-    archiveSection.classList.add("hidden");
-    aboutSection.classList.add("hidden");
-
-    // Mostra la home
-    mainMenu.classList.remove("hidden");
-    mainMenu.classList.add("home-layout");
+    showScreen("menu-screen");
 }
 
+/* ===========================
+   AVVIO GIOCO E LIVELLI
+   =========================== */
 
+function startGame() {
+    currentLevel = 1;
+    loadLevel();
+}
 
+function loadLevel() {
+    const cfg = levelConfigs[currentLevel];
+    document.getElementById("level-title").textContent = cfg.title;
+    document.getElementById("level-description").textContent = cfg.description;
 
-// Menu principale
-mainMenu.addEventListener("click", (e) => {
-    const action = e.target.dataset.action;
-    if (!action) return;
+    // Mostra popup informativo all'inizio del livello
+    loadLevelPopup();
 
-    if (action === "play-default") {
-        startLevel("bio");
-    } else if (action === "choose-level") {
-        showSection(levelSelect);
-    } else if (action === "open-archive") {
-        renderArchive();
-        showSection(archiveSection);
-    } else if (action === "about") {
-        showSection(aboutSection);
-    }
-});
+    showScreen("level-screen");
+}
 
-// Selezione livello
-levelSelect.addEventListener("click", (e) => {
-    const levelKey = e.target.dataset.level;
-    const action = e.target.dataset.action;
-    if (levelKey) {
-        startLevel(levelKey);
-    } else if (action === "back-menu") {
-        backToMenu();
-    }
-});
+function startLevelMemory() {
+    const cfg = levelConfigs[currentLevel];
+    startMemory(cfg);
+}
 
-// Pulsanti "torna al menu"
-document.querySelectorAll(".back-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-        backToMenu();
+/* ===========================
+   POPUP LIVELLO (INFO ORDINATE)
+   =========================== */
+
+function loadLevelPopup() {
+    const popup = document.getElementById("level-popup");
+    if (!popup) return;
+
+    // Ordine fisso: nascita → studi → scoperte → discriminazioni → morte
+    const texts = [
+        ...nettieInfo.birth,
+        ...nettieInfo.studies,
+        ...nettieInfo.discoveries,
+        ...nettieInfo.discrimination,
+        ...nettieInfo.death
+    ];
+
+    popup.innerHTML = "";
+    texts.forEach(t => {
+        const p = document.createElement("p");
+        p.textContent = t;
+        popup.appendChild(p);
     });
-});
-
-// Popup
-popupCloseBtn.addEventListener("click", () => {
-    popup.style.display = "none";
-});
-
-// --- AVVIO LIVELLO ---
-function startLevel(levelKey) {
-    console.log("startLevel chiamata con:", levelKey);
-
-    const level = levels[levelKey];
-    console.log("level trovato:", level);
-    if (!level) {
-        console.error("Nessun livello trovato per key:", levelKey);
-        return;
-    }
-
-    // AVVISO SOLO SU MOBILE
-    if (isMobile()) {
-        checkOrientation();
-    }
-
-    currentLevelKey = levelKey;
-
-    // Protezioni sugli elementi DOM
-    if (gameTitle) {
-        gameTitle.textContent = level.title;
-    } else {
-        console.error("gameTitle è null");
-    }
-
-    if (gameSubtitle) {
-        gameSubtitle.textContent = level.subtitle;
-    } else {
-        console.error("gameSubtitle è null");
-    }
-
-    loadLevel(levelKey);
-    generateCards();
-
-    if (gameSection) {
-        showSection(gameSection);
-    } else {
-        console.error("gameSection è null");
-    }
 }
 
-function loadLevel(levelKey) {
-    const level = levels[levelKey];
-    if (!level) return;
+/* ===========================
+   MEMORY – LOGICA GENERALE
+   =========================== */
 
-    // reset stato
-    flipped = [];
-    matchedPairs = 0;
-    totalPairs = level.cards.length / 2;
+function startMemory(config) {
+    const grid = document.getElementById("memory-grid");
+    const info = document.getElementById("memory-info");
+    const extra = document.getElementById("memory-extra");
+    const timerEl = document.getElementById("memory-timer");
 
-    // pulisci il contenitore
-    gameContainer.innerHTML = "";
-}
+    if (!grid) return;
 
-function generateCards() {
-    flipped = [];
-    matchedPairs = 0;
-    gameContainer.innerHTML = "";
+    grid.innerHTML = "";
+    extra.textContent = "";
+    if (timerEl) timerEl.textContent = "";
 
-    const level = levels[currentLevelKey];
-    if (!level) return;
+    memoryState.config = config;
+    memoryState.revealed = [];
+    memoryState.matchedPairs = 0;
+    memoryState.lock = false;
 
-    const cardsData = [...level.cards].sort(() => Math.random() - 0.5);
-    totalPairs = cardsData.length / 2;
+    // Seleziona le coppie per questo livello
+    const pairsNeeded = config.pairs;
+    const selectedPairs = allPairs.slice(0, pairsNeeded); // semplice: prime N coppie
 
-    cardsData.forEach((cardData, index) => {
-        const card = document.createElement("div");
-        card.classList.add("card");
-        card.dataset.factId = cardData.factId;
+    memoryState.totalPairs = pairsNeeded;
 
-        const back = document.createElement("div");
-        back.classList.add("card-back");
+    // Crea le carte (2 per ogni coppia)
+    let cards = [];
+    selectedPairs.forEach(pair => {
+        cards.push({
+            pairId: pair.pairId,
+            img: pair.imgA,
+            matched: false
+        });
+        cards.push({
+            pairId: pair.pairId,
+            img: pair.imgB,
+            matched: false
+        });
+    });
+
+    // Mischia le carte
+    cards = shuffleArray(cards);
+    memoryState.cards = cards;
+
+    // Render carte
+    cards.forEach((card, index) => {
+        const cardEl = document.createElement("div");
+        cardEl.className = "memory-card card-vintage";
+        cardEl.dataset.index = index;
+        cardEl.dataset.pairId = card.pairId;
 
         const front = document.createElement("div");
-        front.classList.add("card-front");
+        front.className = "card-face card-front";
+        // retro carta (pattern generico)
+        front.textContent = ""; // puoi lasciare vuoto o mettere un simbolo
+
+        const back = document.createElement("div");
+        back.className = "card-face card-back";
 
         const img = document.createElement("img");
-        img.src = cardData.img;
+        img.src = card.img;
+        img.alt = card.pairId;
+        back.appendChild(img);
 
-        front.appendChild(img);
-        card.appendChild(back);
-        card.appendChild(front);
+        cardEl.appendChild(front);
+        cardEl.appendChild(back);
 
-        card.addEventListener("click", () => flipCard(card));
-        gameContainer.appendChild(card);
+        cardEl.onclick = () => clickMemoryCard(cardEl);
+
+        grid.appendChild(cardEl);
     });
-}
 
-// --- LOGICA MEMORY ---
-function flipCard(card) {
-    if (card.classList.contains("flipped")) return;
-    if (flipped.length === 2) return;
-
-    card.classList.add("flipped");
-    flipped.push(card);
-
-    if (flipped.length === 2) {
-        setTimeout(checkMatch, 400);
-    }
-}
-
-function checkMatch() {
-    const [c1, c2] = flipped;
-    if (!c1 || !c2) {
-        flipped = [];
-        return;
+    // Info livello
+    if (info) {
+        info.textContent = getMemoryInfoTextForLevel(currentLevel);
     }
 
-    if (c1.dataset.factId === c2.dataset.factId) {
-        matchedPairs++;
-        const factId = c1.dataset.factId;
-        unlockFact(factId);
-        showFactPopup(factId);
+    // Timer
+    stopMemoryTimer();
+    if (config.timer) {
+        memoryState.timeLeft = config.timeLimit;
+        updateTimerDisplay();
+        memoryState.timerId = setInterval(() => {
+            memoryState.timeLeft--;
+            updateTimerDisplay();
+            if (memoryState.timeLeft <= 0) {
+                stopMemoryTimer();
+                handleTimeOver();
+            }
+        }, 1000);
+    }
 
-        // fine livello
-        if (matchedPairs === totalPairs) {
-            // aspetta che il popup della scoperta venga chiuso
-            popupCloseBtn.onclick = () => {
-                popup.style.display = "none";
-                showLevelCompletePopup();
-            };
+    showScreen("memory-screen");
+}
+
+function clickMemoryCard(cardEl) {
+    if (memoryState.lock) return;
+    const index = parseInt(cardEl.dataset.index, 10);
+    const cardData = memoryState.cards[index];
+
+    if (cardData.matched) return;
+    if (cardEl.classList.contains("flipped")) return;
+
+    // gira la carta
+    cardEl.classList.add("flipped");
+    memoryState.revealed.push({ index, el: cardEl, pairId: cardData.pairId });
+
+    if (memoryState.revealed.length === 2) {
+        memoryState.lock = true;
+        const [c1, c2] = memoryState.revealed;
+
+        if (c1.pairId === c2.pairId) {
+            // match
+            memoryState.cards[c1.index].matched = true;
+            memoryState.cards[c2.index].matched = true;
+            memoryState.matchedPairs++;
+
+            memoryState.revealed = [];
+            memoryState.lock = false;
+
+            if (memoryState.matchedPairs === memoryState.totalPairs) {
+                // livello completato
+                stopMemoryTimer();
+                setTimeout(() => {
+                    completeLevel();
+                }, 600);
+            }
         } else {
-            // comportamento normale per le coppie non finali
-            popupCloseBtn.onclick = () => {
-                popup.style.display = "none";
-            };
+            // errore
+            setTimeout(() => {
+                c1.el.classList.remove("flipped");
+                c2.el.classList.remove("flipped");
+                memoryState.revealed = [];
+                memoryState.lock = false;
+
+                // se il livello prevede scambio coppie
+                if (memoryState.config.swapOnError) {
+                    swapRandomCards();
+                }
+            }, 700);
         }
+    }
+}
 
-    } else {
-        c1.classList.remove("flipped");
-        c2.classList.remove("flipped");
+/* ===========================
+   TIMER
+   =========================== */
+
+function updateTimerDisplay() {
+    const timerEl = document.getElementById("memory-timer");
+    if (!timerEl) return;
+    timerEl.textContent = "Tempo: " + memoryState.timeLeft + "s";
+}
+
+function stopMemoryTimer() {
+    if (memoryState.timerId) {
+        clearInterval(memoryState.timerId);
+        memoryState.timerId = null;
+    }
+}
+
+function handleTimeOver() {
+    const extra = document.getElementById("memory-extra");
+    if (extra) {
+        extra.textContent = "Tempo scaduto! Riprova il livello.";
+    }
+    // reset livello dopo un attimo
+    setTimeout(() => {
+        startMemory(levelConfigs[currentLevel]);
+    }, 1500);
+}
+
+/* ===========================
+   SCAMBIO DI COPPIE (ERRORI)
+   =========================== */
+
+function swapRandomCards() {
+    const grid = document.getElementById("memory-grid");
+    if (!grid) return;
+
+    const cardEls = Array.from(grid.querySelectorAll(".memory-card"));
+    if (cardEls.length < 2) return;
+
+    // prendi due indici diversi
+    let i1 = Math.floor(Math.random() * cardEls.length);
+    let i2 = Math.floor(Math.random() * cardEls.length);
+    while (i2 === i1) {
+        i2 = Math.floor(Math.random() * cardEls.length);
     }
 
-    flipped = [];
+    const el1 = cardEls[i1];
+    const el2 = cardEls[i2];
+
+    // scambia posizione nel DOM
+    const clone1 = el1.cloneNode(true);
+    const clone2 = el2.cloneNode(true);
+
+    // mantieni gli handler
+    clone1.onclick = el1.onclick;
+    clone2.onclick = el2.onclick;
+
+    grid.replaceChild(clone1, el2);
+    grid.replaceChild(clone2, el1);
 }
 
-// --- GESTIONE FATTI / ARCHIVIO ---
-function unlockFact(factId) {
-    unlockedFacts.add(factId);
-}
+/* ===========================
+   COMPLETAMENTO LIVELLO
+   =========================== */
 
-function getFactById(id) {
-    return facts.find(f => f.id === id);
-}
-
-function showFactPopup(factId) {
-    const fact = getFactById(factId);
-    if (!fact) return;
-
-    popupTitle.textContent = fact.title + " (" + fact.category + ")";
-    popupText.textContent = fact.text;
-    popup.style.display = "block";
-}
-
-function renderArchive() {
-    archiveList.innerHTML = "";
-
-    if (unlockedFacts.size === 0) {
-        archiveEmpty.style.display = "block";
-        return;
-    } else {
-        archiveEmpty.style.display = "none";
+function completeLevel() {
+    const extra = document.getElementById("memory-extra");
+    if (extra) {
+        extra.textContent = "Livello completato!";
     }
 
-    // raggruppa per categoria
-    const byCategory = {};
-    unlockedFacts.forEach(id => {
-        const fact = getFactById(id);
-        if (!fact) return;
-        if (!byCategory[fact.category]) byCategory[fact.category] = [];
-        byCategory[fact.category].push(fact);
-    });
+    // sblocca riassunto
+    if (!unlockedSummaries.includes(currentLevel)) {
+        unlockedSummaries.push(currentLevel);
+    }
 
-    Object.keys(byCategory).forEach(cat => {
-        const catDiv = document.createElement("div");
-        catDiv.classList.add("archive-category");
+    // mostra riassunto
+    loadSummary();
+    showScreen("summary-screen");
+}
 
-        const h3 = document.createElement("h3");
-        h3.textContent = cat;
-        catDiv.appendChild(h3);
+function nextLevel() {
+    if (currentLevel < maxLevel) {
+        currentLevel++;
+        loadLevel();
+    } else {
+        backToMenu();
+    }
+}
 
-        byCategory[cat].forEach(fact => {
-            const item = document.createElement("div");
-            item.classList.add("archive-item");
-            item.textContent = fact.title + " – " + fact.text;
-            catDiv.appendChild(item);
+/* ===========================
+   TESTO INFO MEMORY PER LIVELLO
+   =========================== */
+
+function getMemoryInfoTextForLevel(level) {
+    switch (level) {
+        case 1:
+            return "Memory base: poche coppie per conoscere le origini di Nettie.";
+        case 2:
+            return "Memory con timer: più coppie e tempo limitato sugli studi e la carriera.";
+        case 3:
+            return "Memory avanzato: ogni errore può cambiare la posizione delle carte!";
+        case 4:
+            return "Memory finale: timer + scambio di coppie, il livello più difficile.";
+        default:
+            return "";
+    }
+}
+
+/* ===========================
+   ARCHIVIO / RIASSUNTI
+   =========================== */
+
+function openArchive() {
+    const list = document.getElementById("archive-list");
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    if (unlockedSummaries.length === 0) {
+        list.innerHTML = "<p>Nessuna scheda sbloccata.</p>";
+    } else {
+        unlockedSummaries.sort((a, b) => a - b);
+        unlockedSummaries.forEach(level => {
+            const div = document.createElement("div");
+            div.className = "archive-card";
+            div.textContent = "Livello " + level + " – Scheda riassuntiva";
+            div.onclick = () => openSummaryFromArchive(level);
+            list.appendChild(div);
         });
+    }
 
-        archiveList.appendChild(catDiv);
+    showScreen("archive-screen");
+}
+
+function openSummaryFromArchive(level) {
+    currentLevel = level;
+    loadSummary();
+    showScreen("summary-screen");
+}
+
+function loadSummary() {
+    const list = document.getElementById("summary-list");
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    // Ordine fisso delle info
+    const orderedBlocks = [
+        nettieInfo.birth,
+        nettieInfo.studies,
+        nettieInfo.discoveries,
+        nettieInfo.discrimination,
+        nettieInfo.death
+    ];
+
+    orderedBlocks.forEach(block => {
+        block.forEach(text => {
+            const li = document.createElement("li");
+            li.textContent = text;
+            list.appendChild(li);
+        });
     });
 }
 
-const levelOrder = ["bio", "scoperte", "riconoscimenti", "vita"];
+/* ===========================
+   UTILS
+   =========================== */
 
-function showLevelCompletePopup() {
-    const popup = document.getElementById("level-complete-popup");
-    const title = document.getElementById("level-complete-title");
-
-    title.textContent = "Hai completato: " + levels[currentLevelKey].title;
-
-    popup.style.display = "block";
-
-    // trova livello successivo
-    const currentIndex = levelOrder.indexOf(currentLevelKey);
-    const nextLevel = levelOrder[currentIndex + 1];
-
-    const continueBtn = document.getElementById("continue-btn");
-
-    if (nextLevel) {
-        continueBtn.textContent = "Continua →";
-        continueBtn.onclick = () => {
-            popup.style.display = "none";
-            startLevel(nextLevel);
-        };
-    } else {
-        continueBtn.textContent = "Torna al menu";
-        continueBtn.onclick = () => {
-            popup.style.display = "none";
-            backToMenu();
-        };
-    }
+function shuffleArray(arr) {
+    return arr
+        .map(v => ({ v, r: Math.random() }))
+        .sort((a, b) => a.r - b.r)
+        .map(o => o.v);
 }
-
-window.addEventListener("resize", () => {
-  if (isMobile()) checkOrientation();
-});
-
-document.getElementById("close-rotate").addEventListener("click", () => {
-  document.getElementById("rotate-warning").style.display = "none";
-});
